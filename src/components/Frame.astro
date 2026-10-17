@@ -1,0 +1,19 @@
+---
+// One photo in a frame. Opens in the lightbox when `zoom` is set.
+import { img, ratio } from '../data/media';
+import type { Photo } from '../data/photos';
+
+interface Props { photo: Photo; w?: number; alt: string; caption?: string; zoom?: boolean; eager?: boolean; class?: string }
+const { photo, w = 900, alt, caption, zoom = false, eager = false, class: cls = '' } = Astro.props;
+const [rw, rh] = ratio(photo.shape);
+const src = img(photo.id, w, photo.shape);
+---
+{zoom ? (
+  <button class={`frame ${cls}`} type="button" style={`aspect-ratio:${rw}/${rh}`} data-lightbox={photo.id} data-shape={photo.shape} data-caption={caption ?? alt} aria-label={alt}>
+    <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" data-drive={photo.id} />
+  </button>
+) : (
+  <span class={`frame ${cls}`} style={`aspect-ratio:${rw}/${rh}`}>
+    <img src={src} alt={alt} loading={eager ? 'eager' : 'lazy'} decoding="async" data-drive={photo.id} fetchpriority={eager ? 'high' : undefined} />
+  </span>
+)}

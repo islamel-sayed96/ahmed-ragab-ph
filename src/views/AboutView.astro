@@ -1,0 +1,50 @@
+---
+import Base from '../layouts/Base.astro';
+import Frame from '../components/Frame.astro';
+import Contact from '../components/Contact.astro';
+import { ui, type Lang } from '../i18n/ui';
+import { portrait } from '../data/photos';
+import { site, gear } from '../data/site';
+
+const { lang } = Astro.props as { lang: Lang };
+const t = ui[lang];
+const kit = [
+  [t.kit.camera, gear.camera], [t.kit.lens, gear.lens], [t.kit.motion, gear.motion], [t.kit.software, gear.software],
+];
+---
+<Base lang={lang} page="about" title={t.meta.about.title} description={t.meta.about.description}>
+  <section class="about wrap">
+    <div class="about-photo" data-reveal>
+      <Frame photo={portrait} w={1200} alt={lang === 'ar' ? 'أحمد رجب' : site.fullName} eager />
+    </div>
+    <div class="about-text">
+      <p class="kicker">{t.aboutKicker}</p>
+      <h1>{t.aboutTitle}</h1>
+      {t.bio.map((b, i) => <p class={i === 0 ? 'about-lead dropcap' : 'about-body'}>{b}</p>)}
+      <div class="ctas">
+        <a class="btn solid" href={site.cv} target="_blank" rel="noopener">{t.cv}</a>
+        <a class="btn line" href={site.portfolioPdf} target="_blank" rel="noopener">{t.portfolioPdf}</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section wrap about-cols">
+    <div>
+      <h2 class="h-small">{t.historyTitle}</h2>
+      <ol class="timeline">
+        {t.history.map((h) => (
+          <li data-reveal><span class="kicker">{h.years}</span><strong>{h.role}</strong><span>{h.place}</span></li>
+        ))}
+      </ol>
+    </div>
+    <div>
+      <h2 class="h-small">{t.kitTitle}</h2>
+      <dl class="kit">
+        {kit.map(([k, v]) => <div data-reveal><dt class="kicker">{k}</dt><dd dir="ltr">{v}</dd></div>)}
+      </dl>
+      <h2 class="h-small">{t.languagesTitle}</h2>
+      <p class="langs">{t.languages}</p>
+    </div>
+  </section>
+  <Contact lang={lang} />
+</Base>

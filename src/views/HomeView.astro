@@ -1,0 +1,173 @@
+---
+import Base from '../layouts/Base.astro';
+import Frame from '../components/Frame.astro';
+import FilmCard from '../components/FilmCard.astro';
+import Contact from '../components/Contact.astro';
+import { ui, path, type Lang } from '../i18n/ui';
+import { photos, categories, cover, heroPhoto } from '../data/photos';
+import { films } from '../data/films';
+import { img } from '../data/media';
+import { clients, cities, yearsActive } from '../data/site';
+
+const { lang } = Astro.props as { lang: Lang };
+const t = ui[lang];
+const featured = photos.filter((p) => p.featured);
+const featuredFilms = films.filter((f) => f.featured);
+const [first, last] = lang === 'ar' ? ['أحمد', 'رجب'] : ['Ahmed', 'Ragab'];
+const count = (c: string) => photos.filter((p) => p.cat === c).length;
+const roman = ['I', 'II', 'III'];
+const edition = new Date().getFullYear();
+// Small photos tucked inside the statement sentence.
+const inline = [cover('weddings'), cover('concerts'), cover('brands')];
+const [s0, s1, s2, s3, s4, s5] = t.statement;
+---
+<Base lang={lang} page="" title={t.meta.home.title} description={t.meta.home.description}>
+
+  <!-- Cover: laid out like a magazine cover -->
+  <section class="cover wrap" aria-labelledby="cover-h">
+    <div class="cover-top kicker" data-fade>
+      <span>{t.issue} · {t.edition} {edition}</span>
+      <span class="route">{t.route[0]} <i aria-hidden="true">⟶</i> {t.route[1]}</span>
+      <span>{t.role}</span>
+    </div>
+    <h1 class="cover-name" id="cover-h" data-cover-name>
+      <span class="ln"><span>{first}</span></span>
+      <span class="ln"><em><span>{last}</span></em></span>
+    </h1>
+    <div class="cover-grid">
+      <div class="cover-side" data-fade>
+        <p class="kicker">{t.coverLines}</p>
+        <ol class="cover-lines">
+          {categories.slice(0, 4).map((c, i) => (
+            <li><a href={`${path(lang, 'photography')}?c=${c}`}><span>{t.cats[c]}</span><span class="kicker">p.{String((i + 1) * 8).padStart(2, '0')}</span></a></li>
+          ))}
+        </ol>
+      </div>
+      <figure class="cover-photo" data-cover-photo>
+        <Frame photo={heroPhoto} w={1600} alt={t.role} eager />
+        <figcaption class="kicker"><span>{t.fig} 00</span><span dir="ltr">{cities.to.coords}</span></figcaption>
+      </figure>
+      <div class="cover-side end" data-fade>
+        <p class="cover-lede">{t.heroLede}</p>
+        <div class="ctas">
+          <a class="btn solid" href="#contact">{t.ctaBook} <span class="arrow">→</span></a>
+          <a class="btn line" href={path(lang, 'photography')}>{t.ctaWork}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Statement: one big sentence with photos set into the words -->
+  <section class="statement wrap" aria-label={t.role}>
+    <p data-words>
+      {s0} <span class="inl"><img src={img(inline[0].id, 300, 'landscape')} alt="" loading="lazy" /></span> <em>{s1}</em>
+      <span class="inl"><img src={img(inline[1].id, 300, 'landscape')} alt="" loading="lazy" /></span> <em>{s2}</em> {s3}
+      <span class="inl"><img src={img(inline[2].id, 300, 'landscape')} alt="" loading="lazy" /></span> <em>{s4}</em> {s5}
+    </p>
+  </section>
+
+  <!-- Contents: the categories as a table of contents with a hover preview -->
+  <section class="section wrap" aria-labelledby="index-h">
+    <div class="sec-head">
+      <h2 id="index-h">{t.indexTitle}</h2>
+      <p>{t.indexLede}</p>
+    </div>
+    <ol class="toc">
+      {categories.map((c, i) => (
+        <li data-reveal>
+          <a href={`${path(lang, 'photography')}?c=${c}`} data-peek={img(cover(c).id, 700, 'portrait')}>
+            <span class="toc-n kicker">{String(i + 1).padStart(2, '0')}</span>
+            <span class="toc-t">{t.cats[c]}</span>
+            <span class="toc-dots" aria-hidden="true"></span>
+            <span class="toc-c kicker">{count(c)} {t.photosCount}</span>
+            <span class="toc-arrow" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <!-- Selected frames: an asymmetric magazine spread -->
+  <section class="section wrap" aria-labelledby="sel-h">
+    <div class="sec-head">
+      <h2 id="sel-h">{t.selectedTitle}</h2>
+      <p>{t.selectedLede}</p>
+    </div>
+    <div class="spread" data-sheet>
+      {featured.map((p, i) => (
+        <figure class={`sp sp-${i + 1}`} data-reveal>
+          <Frame photo={p} w={1200} alt={t.cats[p.cat]} zoom />
+          <figcaption class="kicker"><span>{t.fig} {String(i + 1).padStart(2, '0')}</span><span>{t.cats[p.cat]}</span></figcaption>
+        </figure>
+      ))}
+    </div>
+    <div class="sec-foot"><a class="btn line" href={path(lang, 'photography')}>{t.seeAllPhotos} <span class="arrow">→</span></a></div>
+  </section>
+
+  <!-- Films: a horizontal reel that moves as you scroll -->
+  <section class="films-band" aria-labelledby="films-h" data-hscroll>
+    <div class="wrap"><div class="sec-head">
+      <h2 id="films-h">{t.filmsTitle}</h2>
+      <p>{t.filmsLede} <span class="kicker hint">{t.dragHint}</span></p>
+    </div></div>
+    <div class="hs-viewport">
+      <div class="hs-track" data-hs-track>
+        {featuredFilms.map((f, i) => <FilmCard lang={lang} film={f} n={i + 1} />)}
+        <a class="hs-more" href={path(lang, 'films')}><span>{t.seeAllFilms}</span><span class="arrow">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Two seas: Alexandria to Dubai -->
+  <section class="section wrap seas" aria-labelledby="seas-h">
+    <h2 id="seas-h" class="seas-h">{t.seasTitle}</h2>
+    <div class="seas-grid">
+      {t.seas.map((s, i) => (
+        <article class={`sea sea-${i}`} data-reveal>
+          <Frame photo={cover(i === 0 ? 'places' : 'events')} w={900} alt={s.city} />
+          <p class="kicker" dir="ltr">{i === 0 ? cities.from.coords : cities.to.coords}</p>
+          <h3>{s.city}</h3>
+          <p class="sea-name">{s.sea}</p>
+          <p>{s.text}</p>
+        </article>
+      ))}
+      <div class="seas-line" aria-hidden="true"><span></span></div>
+    </div>
+    <dl class="stats">
+      <div data-reveal><dt class="kicker">{t.stats.years}</dt><dd data-count={yearsActive}>{yearsActive}+</dd></div>
+      <div data-reveal><dt class="kicker">{t.stats.shoots}</dt><dd data-count="600">600+</dd></div>
+      <div data-reveal><dt class="kicker">{t.stats.cities}</dt><dd>2</dd></div>
+    </dl>
+  </section>
+
+  <!-- Services -->
+  <section class="section wrap" aria-labelledby="srv-h">
+    <div class="sec-head"><h2 id="srv-h">{t.servicesTitle}</h2></div>
+    <div class="services">
+      {t.services.map((s, i) => (
+        <article class="service" data-reveal>
+          <span class="svc-n">{roman[i]}</span>
+          <h3>{s.title}</h3>
+          <p>{s.text}</p>
+          <ul>{s.items.map((it) => <li>{it}</li>)}</ul>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <!-- Quote + clients -->
+  <section class="section wrap quote-block" aria-label={t.clientsTitle}>
+    <blockquote data-reveal>
+      <p>{t.quote}</p>
+      <footer class="kicker">{t.quoteBy}</footer>
+    </blockquote>
+  </section>
+  <div class="clients" aria-label={t.clientsTitle}>
+    <p class="wrap kicker">{t.clientsTitle}</p>
+    <div class="marquee"><div class="marquee-track">
+      {[...clients, ...clients].map((c, i) => <span aria-hidden={i >= clients.length ? 'true' : undefined}>{c}<i>✦</i></span>)}
+    </div></div>
+  </div>
+
+  <Contact lang={lang} />
+</Base>

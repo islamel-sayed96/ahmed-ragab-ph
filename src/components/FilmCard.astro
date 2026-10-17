@@ -1,0 +1,20 @@
+---
+import { ui, type Lang } from '../i18n/ui';
+import { poster } from '../data/media';
+import { watchUrl, type Film } from '../data/films';
+
+interface Props { lang: Lang; film: Film; n: number }
+const { lang, film, n } = Astro.props;
+const t = ui[lang];
+---
+<a class="film-card" href={watchUrl(film.id)} data-video={film.id} data-title={film.title}>
+  <span class="fc-media">
+    <img src={poster(film.id, 1000)} alt="" loading="lazy" decoding="async" data-drive-video={film.id} />
+    <span class="fc-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></span>
+    <span class="fc-len">{film.length}</span>
+  </span>
+  <span class="fc-info">
+    <span class="kicker">{String(n).padStart(2, '0')} · {t.filmTypes[film.type]} · {film.year}</span>
+    <span class="fc-title">{film.title}</span>
+  </span>
+</a>

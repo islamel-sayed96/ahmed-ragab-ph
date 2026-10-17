@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import Frame from '../components/Frame.astro';
+import Contact from '../components/Contact.astro';
+import { ui, type Lang } from '../i18n/ui';
+import { photos, categories } from '../data/photos';
+
+const { lang } = Astro.props as { lang: Lang };
+const t = ui[lang];
+---
+<Base lang={lang} page="photography" title={t.meta.photography.title} description={t.meta.photography.description}>
+  <header class="page-head wrap">
+    <p class="kicker">{t.indexTitle}</p>
+    <h1>{t.photoPageTitle}</h1>
+    <p class="page-lede">{t.photoPageLede}</p>
+  </header>
+  <div class="wrap">
+    <div class="filters" data-filters role="toolbar" aria-label={t.photoPageTitle}>
+      <button type="button" class="chip-btn" data-cat="all" aria-pressed="true">{t.all} <sup>{photos.length}</sup></button>
+      {categories.map((c) => (
+        <button type="button" class="chip-btn" data-cat={c} aria-pressed="false">{t.cats[c]} <sup>{photos.filter((p) => p.cat === c).length}</sup></button>
+      ))}
+    </div>
+    <div class="masonry" data-sheet>
+      {photos.map((p, i) => (
+        <figure class="still" data-cat={p.cat} data-reveal>
+          <Frame photo={p} w={900} alt={`${t.cats[p.cat]} ${i + 1}`} caption={t.cats[p.cat]} zoom />
+          <figcaption class="kicker"><span>{t.fig} {String(i + 1).padStart(2, '0')}</span><span>{t.cats[p.cat]}</span></figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+  <Contact lang={lang} />
+</Base>
