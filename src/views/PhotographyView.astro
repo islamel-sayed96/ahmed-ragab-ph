@@ -10,8 +10,8 @@ const t = ui[lang];
 ---
 <Base lang={lang} page="photography" title={t.meta.photography.title} description={t.meta.photography.description}>
   <header class="page-head wrap">
-    <p class="kicker">{t.indexTitle}</p>
-    <h1>{t.photoPageTitle}</h1>
+    <p class="kicker">{t.photoPageKicker}</p>
+    <h1 class="display">{t.photoPageTitle}</h1>
     <p class="page-lede">{t.photoPageLede}</p>
   </header>
   <div class="wrap">
@@ -25,7 +25,7 @@ const t = ui[lang];
       {photos.map((p, i) => (
         <figure class="still" data-cat={p.cat} data-reveal>
           <Frame photo={p} w={900} alt={`${t.cats[p.cat]} ${i + 1}`} caption={t.cats[p.cat]} zoom />
-          <figcaption class="kicker"><span>{t.fig} {String(i + 1).padStart(2, '0')}</span><span>{t.cats[p.cat]}</span></figcaption>
+          <figcaption class="mono"><span>{String(i + 1).padStart(2, '0')}</span><span>{t.cats[p.cat]}</span></figcaption>
         </figure>
       ))}
     </div>

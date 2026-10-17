@@ -18,19 +18,19 @@ const kit = [
       <Frame photo={portrait} w={1200} alt={lang === 'ar' ? 'أحمد رجب' : site.fullName} eager />
     </div>
     <div class="about-text">
-      <p class="kicker">{t.aboutKicker}</p>
-      <h1>{t.aboutTitle}</h1>
-      {t.bio.map((b, i) => <p class={i === 0 ? 'about-lead dropcap' : 'about-body'}>{b}</p>)}
+      <p class="kicker">{t.aboutPageKicker}</p>
+      <h1 class="display">{t.aboutTitle}</h1>
+      {t.bio.map((b, i) => <p class={i === 0 ? 'about-lead' : 'about-body'}>{b}</p>)}
       <div class="ctas">
-        <a class="btn solid" href={site.cv} target="_blank" rel="noopener">{t.cv}</a>
-        <a class="btn line" href={site.portfolioPdf} target="_blank" rel="noopener">{t.portfolioPdf}</a>
+        <a class="btn tan" href={site.cv} target="_blank" rel="noopener">{t.cv}</a>
+        <a class="btn ghost" href={site.portfolioPdf} target="_blank" rel="noopener">{t.portfolioPdf}</a>
       </div>
     </div>
   </section>
 
   <section class="section wrap about-cols">
     <div>
-      <h2 class="h-small">{t.historyTitle}</h2>
+      <h2 class="h-small display">{t.historyTitle}</h2>
       <ol class="timeline">
         {t.history.map((h) => (
           <li data-reveal><span class="kicker">{h.years}</span><strong>{h.role}</strong><span>{h.place}</span></li>
@@ -38,11 +38,11 @@ const kit = [
       </ol>
     </div>
     <div>
-      <h2 class="h-small">{t.kitTitle}</h2>
+      <h2 class="h-small display">{t.kitTitle}</h2>
       <dl class="kit">
         {kit.map(([k, v]) => <div data-reveal><dt class="kicker">{k}</dt><dd dir="ltr">{v}</dd></div>)}
       </dl>
-      <h2 class="h-small">{t.languagesTitle}</h2>
+      <h2 class="h-small display">{t.languagesTitle}</h2>
       <p class="langs">{t.languages}</p>
     </div>
   </section>

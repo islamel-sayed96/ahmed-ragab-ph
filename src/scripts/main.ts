@@ -4,26 +4,9 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 const $ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => r.querySelector<T>(s);
 const $$ = <T extends Element = HTMLElement>(s: string, r: ParentNode = document) => [...r.querySelectorAll<T>(s)];
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const root = document.documentElement;
 const rtl = root.dir === 'rtl';
 const isDemo = (id = '') => id.startsWith('demo');
-
-/* ---------- Theme ---------- */
-const themeBtn = $<HTMLButtonElement>('[data-theme-toggle]');
-function syncTheme() {
-  if (!themeBtn) return;
-  const dark = root.dataset.theme === 'dark';
-  themeBtn.setAttribute('aria-label', dark ? themeBtn.dataset.labelLight! : themeBtn.dataset.labelDark!);
-  $('meta[name="theme-color"]')?.setAttribute('content', dark ? '#111416' : '#f4efe6');
-}
-themeBtn?.addEventListener('click', () => {
-  const dark = root.dataset.theme !== 'dark';
-  if (dark) root.dataset.theme = 'dark'; else delete root.dataset.theme;
-  try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch {}
-  syncTheme();
-});
-syncTheme();
 
 /* ---------- Mobile menu ---------- */
 const menuBtn = $<HTMLButtonElement>('[data-menu]');
@@ -32,14 +15,53 @@ const setMenu = (open: boolean) => { nav?.classList.toggle('open', open); menuBt
 menuBtn?.addEventListener('click', () => setMenu(!nav!.classList.contains('open')));
 nav?.addEventListener('click', (e) => { if ((e.target as Element).closest('a')) setMenu(false); });
 
-/* ---------- Masthead hides on the way down, returns on the way up ---------- */
-const mast = $('.masthead');
-let lastY = scrollY;
-addEventListener('scroll', () => {
-  const y = scrollY;
-  if (mast && !nav?.classList.contains('open')) mast.classList.toggle('hide', y > 300 && y > lastY);
-  lastY = y;
-}, { passive: true });
+/* ---------- Header turns solid once you scroll past the top ---------- */
+const header = $('.site-header');
+const onScroll = () => header?.classList.toggle('solid', scrollY > 40);
+addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+
+/* ---------- Hero strip: the active photo grows and fills the background ---------- */
+const stage = $('[data-stage]');
+if (stage) {
+  const items = $$<HTMLButtonElement>('[data-slide]', stage);
+  const bgs = $$<HTMLImageElement>('.stage-bg img', stage);
+  const track = $('[data-strip-track]', stage)!;
+  const strip = $('[data-strip]', stage)!;
+  const now = $('[data-count-now]', stage)!;
+  const bar = $('[data-count-bar]', stage)!;
+  const n = items.length;
+  let active = 0;
+  let timer = 0;
+  const center = () => {
+    // The strip is always 2.1 thumbnails tall, so it gives the base size even mid-animation.
+    const h = strip.clientHeight / 2.1 || 120;
+    const gap = 6;
+    const pad = parseFloat(getComputedStyle(track).paddingInlineStart) || 0;
+    const left = pad + active * (h * 1.5 + gap) + (h * 1.35) / 2;
+    const max = pad * 2 + (n - 1) * (h * 1.5 + gap) + h * 1.35 - strip.clientWidth;
+    const shift = Math.max(0, Math.min(left - strip.clientWidth / 2, Math.max(0, max)));
+    track.style.transform = `translateX(${rtl ? shift : -shift}px)`;
+  };
+  const go = (i: number) => {
+    active = (i + n) % n;
+    items.forEach((b, k) => { b.classList.toggle('on', k === active); b.setAttribute('aria-pressed', String(k === active)); });
+    bgs.forEach((im, k) => im.classList.toggle('on', k === active));
+    now.textContent = String(active + 1).padStart(2, '0');
+    bar.style.insetInlineStart = `${(active * 100) / n}%`;
+    center();
+  };
+  const play = () => { if (!reduce) { clearInterval(timer); timer = window.setInterval(() => go(active + 1), 4500); } };
+  items.forEach((b, k) => b.addEventListener('click', () => { go(k); play(); }));
+  stage.addEventListener('pointerenter', () => clearInterval(timer));
+  stage.addEventListener('pointerleave', play);
+  addEventListener('resize', center);
+  // Keyboard focus would scroll the clipped strip natively; keep it still and let the transform do the moving.
+  strip.addEventListener('scroll', () => { strip.scrollLeft = 0; });
+  items.forEach((b, k) => b.addEventListener('focus', () => { if (k !== active) { go(k); clearInterval(timer); } }));
+  center();
+  play();
+}
 
 /* ---------- Drive images: retry through the thumbnail endpoint once ---------- */
 function watchImage(img: HTMLImageElement) {
@@ -176,77 +198,36 @@ brief?.addEventListener('submit', (e) => {
   window.open(`https://wa.me/${brief.dataset.wa}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener');
 });
 
-/* ---------- Hover preview over the contents list and film rows (mouse only) ---------- */
-const peek = $('.peek');
-if (peek && fine && !reduce) {
-  const peekImg = $<HTMLImageElement>('img', peek)!;
-  const xTo = gsap.quickTo(peek, 'x', { duration: 0.5, ease: 'power3' });
-  const yTo = gsap.quickTo(peek, 'y', { duration: 0.5, ease: 'power3' });
-  addEventListener('pointermove', (e) => { xTo(e.clientX + 24); yTo(e.clientY); });
-  $$('[data-peek]').forEach((el) => {
-    el.addEventListener('pointerenter', () => {
-      peekImg.src = el.dataset.peek!;
-      peek.classList.toggle('wide', el.classList.contains('film-row'));
-      peek.classList.add('on');
-    });
-    el.addEventListener('pointerleave', () => peek.classList.remove('on'));
-  });
-}
-
 /* ---------- Motion ---------- */
 if (!reduce) {
   gsap.registerPlugin(ScrollTrigger);
 
-  // Cover: name rises out of its line masks, the photo opens from the middle, side text fades in.
-  const nameParts = $$('[data-cover-name] .ln > span, [data-cover-name] .ln > em > span');
+  // Hero: the name rises out of its line masks, the strip slides in, the rest fades up.
+  const nameParts = $$('[data-hero-name] .ln > span');
   if (nameParts.length) {
     gsap.timeline({ defaults: { ease: 'expo.out' } })
-      .from(nameParts, { yPercent: 105, duration: 1.4, stagger: 0.14 })
-      .from('[data-cover-photo] .frame', { clipPath: 'inset(18% 18% 18% 18%)', duration: 1.6, ease: 'expo.inOut' }, 0.1)
-      .from('[data-cover-photo] img', { scale: 1.25, duration: 1.8, ease: 'expo.out' }, 0.1)
-      .from('[data-fade]', { y: 16, opacity: 0, duration: 1, stagger: 0.1 }, 0.6);
-    gsap.to('[data-cover-photo] img', { yPercent: 10, ease: 'none', scrollTrigger: { trigger: '[data-cover-photo]', start: 'top top', end: 'bottom top', scrub: true } });
-  }
-
-  // Statement: words light up one by one as you scroll through it.
-  const statement = $('[data-words]');
-  if (statement) {
-    const walker = document.createTreeWalker(statement, NodeFilter.SHOW_TEXT);
-    const texts: Text[] = [];
-    while (walker.nextNode()) if (walker.currentNode.textContent!.trim()) texts.push(walker.currentNode as Text);
-    texts.forEach((node) => {
-      const frag = document.createDocumentFragment();
-      node.textContent!.split(/(\s+)/).forEach((part) => {
-        if (!part.trim()) { frag.append(part); return; }
-        const s = document.createElement('span');
-        s.className = 'w';
-        s.textContent = part;
-        frag.append(s);
-      });
-      node.replaceWith(frag);
-    });
-    gsap.to($$('.w', statement), {
-      opacity: 1, stagger: 0.1, ease: 'none',
-      scrollTrigger: { trigger: statement, start: 'top 80%', end: 'bottom 45%', scrub: true },
-    });
-    gsap.from($$('.inl', statement), { width: 0, duration: 1, ease: 'expo.out', stagger: 0.1, scrollTrigger: { trigger: statement, start: 'top 75%' } });
+      .from(nameParts, { yPercent: 110, duration: 1.4, stagger: 0.12 })
+      .from('[data-strip-track] .strip-item', { y: 40, opacity: 0, duration: 1.1, stagger: 0.05 }, 0.2)
+      .from('[data-hero-fade]', { y: 16, opacity: 0, duration: 1, stagger: 0.1 }, 0.5);
   }
 
   // Anything marked data-reveal drifts up when it enters.
   ScrollTrigger.batch('[data-reveal]', {
     start: 'top 92%',
     once: true,
-    onEnter: (els) => gsap.from(els, { y: 48, opacity: 0, duration: 1, ease: 'power3.out', stagger: 0.08, clearProps: 'transform,opacity' }),
+    onEnter: (els) => gsap.from(els, { y: 44, opacity: 0, duration: 1, ease: 'power3.out', stagger: 0.08, clearProps: 'transform,opacity' }),
   });
 
-  // Section titles: a light parallax.
-  $$('.sec-head h2, .seas-h, .page-head h1').forEach((h) => {
-    gsap.from(h, { yPercent: 30, opacity: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: h, start: 'top 92%' } });
+  // Section titles fade up.
+  $$('.title-block h2, .serif-h, .page-head h1, .pk-title, .quote-inner h2, .contact-head h2').forEach((h) => {
+    gsap.from(h, { y: 30, opacity: 0, duration: 1.2, ease: 'expo.out', scrollTrigger: { trigger: h, start: 'top 90%' } });
   });
 
-  // Line between the two cities draws itself.
-  const line = $('.seas-line span');
-  if (line) gsap.from(line, { scaleY: 0, ease: 'none', scrollTrigger: { trigger: '.seas-grid', start: 'top 70%', end: 'bottom 70%', scrub: true } });
+  // Slow drift on the big background photos.
+  $$('.quote-band img').forEach((im) => {
+    gsap.fromTo(im, { yPercent: -8 }, { yPercent: 0, ease: 'none', scrollTrigger: { trigger: im.parentElement!, start: 'top bottom', end: 'bottom top', scrub: true } });
+  });
+  gsap.to('.reel-band .reel img', { scale: 1.08, ease: 'none', scrollTrigger: { trigger: '.reel-band', start: 'top bottom', end: 'bottom top', scrub: true } });
 
   // Numbers count up.
   $$('[data-count]').forEach((el) => {
@@ -259,21 +240,4 @@ if (!reduce) {
       onUpdate: () => (el.textContent = Math.round(obj.v) + suffix),
     });
   });
-
-  // Films band: on wide screens with a mouse, the reel slides sideways while the section is pinned.
-  const band = $('[data-hscroll]');
-  const track = $('[data-hs-track]');
-  const mm = gsap.matchMedia();
-  if (band && track) {
-    mm.add('(min-width: 861px) and (hover: hover)', () => {
-      const viewport = track.parentElement!;
-      viewport.style.overflow = 'hidden';
-      const dist = () => Math.max(0, track.scrollWidth - viewport.clientWidth);
-      const tween = gsap.to(track, {
-        x: () => (rtl ? dist() : -dist()), ease: 'none',
-        scrollTrigger: { trigger: band, start: 'top top', end: () => `+=${dist()}`, pin: true, scrub: 0.6, invalidateOnRefresh: true },
-      });
-      return () => { tween.kill(); viewport.style.overflow = ''; };
-    });
-  }
 }

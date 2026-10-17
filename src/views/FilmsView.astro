@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import FilmRow from '../components/FilmRow.astro';
+import FilmCard from '../components/FilmCard.astro';
 import Contact from '../components/Contact.astro';
 import { ui, type Lang } from '../i18n/ui';
 import { films, showreel } from '../data/films';
@@ -11,18 +11,21 @@ const t = ui[lang];
 ---
 <Base lang={lang} page="films" title={t.meta.films.title} description={t.meta.films.description}>
   <header class="page-head wrap">
-    <p class="kicker">{t.filmsTitle}</p>
-    <h1>{t.filmPageTitle}</h1>
+    <p class="kicker">{t.filmPageKicker}</p>
+    <h1 class="display">{t.filmPageTitle}</h1>
     <p class="page-lede">{t.filmPageLede}</p>
   </header>
   <div class="wrap">
-    <a class="reel" href="#" data-video={showreel.id} data-title={showreel.title}>
-      <img src={poster(showreel.id, 1800, 'Showreel')} alt="" decoding="async" data-drive-video={showreel.id} />
-      <span class="reel-play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 4l13 8-13 8z"/></svg></span>
-      <span class="reel-cap"><span class="kicker">{showreel.year} · {showreel.length}</span><span class="reel-title">{showreel.title}</span></span>
+    <a class="reel reel-page" href="#" data-video={showreel.id} data-title={showreel.title} aria-label={t.reelPlay}>
+      <img src={poster(showreel.id, 2000)} alt="" decoding="async" data-drive-video={showreel.id} />
+      <span class="reel-text">
+        <span class="kicker">{t.reelKicker}</span>
+        <span class="display">{t.reelTitle}</span>
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l11 7-11 7z"/></svg></span>
+      </span>
     </a>
-    <div class="film-list">
-      {films.map((f, i) => <FilmRow lang={lang} film={f} n={i + 1} />)}
+    <div class="film-grid all">
+      {films.map((f, i) => <FilmCard lang={lang} film={f} n={i + 1} />)}
     </div>
   </div>
   <Contact lang={lang} />

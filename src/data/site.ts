@@ -29,15 +29,12 @@ export const clients = [
   'Festival Seven', 'Clinic Eight', 'Label Nine', 'Gallery Ten',
 ];
 
+// Artists photographed on stage. DEMO names.
+export const artists = ['Artist One', 'Artist Two', 'Artist Three', 'Artist Four', 'Artist Five', 'Artist Six'];
+
 export const gear = {
   camera: 'Sony A7 IV · Sony FX3',
   lens: 'Sony 24–70 GM II · 85mm f/1.4',
   motion: 'DJI RS gimbal · DJI drone · Wireless audio',
   software: 'Premiere Pro · DaVinci Resolve · Lightroom · Photoshop',
-};
-
-// The two cities in Ahmed's story, used in the "Two seas" section.
-export const cities = {
-  from: { coords: '31.20° N  29.92° E' },
-  to: { coords: '25.20° N  55.27° E' },
 };

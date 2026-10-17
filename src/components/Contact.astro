@@ -1,6 +1,6 @@
 ---
-// Closing section on every page: a big headline, direct links, and a quick brief
-// that opens WhatsApp with the message already written.
+// Closing section on every page: a big headline, direct links, documents, and a
+// quick brief that opens WhatsApp with the message already written.
 import { ui, type Lang } from '../i18n/ui';
 import { site } from '../data/site';
 
@@ -8,32 +8,42 @@ const { lang } = Astro.props as { lang: Lang };
 const t = ui[lang];
 ---
 <section class="contact" id="contact" aria-labelledby="contact-h">
-  <div class="wrap contact-grid">
-    <div>
-      <h2 id="contact-h" class="contact-h"><span>{t.contactTitle[0]}</span> <em>{t.contactTitle[1]}</em></h2>
-      <p class="contact-lede">{t.contactLede}</p>
-      <dl class="links">
-        <div><dt class="kicker">{t.email}</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a> <button class="link-btn small" type="button" data-copy={site.email} data-done={t.copied}>{t.copy}</button></dd></div>
-        <div><dt class="kicker">{t.phone}</dt><dd><a href={`tel:${site.phoneHref}`} dir="ltr">{site.phone}</a></dd></div>
-        <div><dt class="kicker">{t.instagram}</dt><dd><a href={site.instagram} target="_blank" rel="noopener" dir="ltr">@{site.handle}</a></dd></div>
-      </dl>
-    </div>
-    <form class="brief" data-brief data-wa={site.whatsappNumber} data-lang={lang}>
-      <p class="kicker brief-title">{t.brief.title}</p>
-      <fieldset>
-        <legend>{t.brief.type}</legend>
-        <div class="chips">
-          {t.brief.types.map((ty, i) => (
-            <label class="chip"><input type="radio" name="type" value={ty} checked={i === 0} /><span>{ty}</span></label>
-          ))}
+  <div class="wrap">
+    <header class="contact-head">
+      <p class="muted">{t.contactKicker}</p>
+      <h2 id="contact-h" class="display"><span class="rule" aria-hidden="true"></span>{t.contactTitle}<span class="rule" aria-hidden="true"></span></h2>
+      <p class="muted">{t.contactLede}</p>
+    </header>
+    <div class="contact-grid">
+      <div>
+        <dl class="links">
+          <div><dt class="mono">{t.whatsapp}</dt><dd><a href={`https://wa.me/${site.whatsappNumber}`} target="_blank" rel="noopener" dir="ltr">{site.phone}</a></dd></div>
+          <div><dt class="mono">{t.email}</dt><dd><a href={`mailto:${site.email}`}>{site.email}</a> <button class="link-btn small" type="button" data-copy={site.email} data-done={t.copied}>{t.copy}</button></dd></div>
+          <div><dt class="mono">{t.instagram}</dt><dd><a href={site.instagram} target="_blank" rel="noopener" dir="ltr">@{site.handle}</a></dd></div>
+        </dl>
+        <p class="mono downloads-h">{t.downloads}</p>
+        <div class="ctas">
+          <a class="btn ghost small" href={site.cv} target="_blank" rel="noopener">{t.cv} ↓</a>
+          <a class="btn ghost small" href={site.portfolioPdf} target="_blank" rel="noopener">{t.portfolioPdf} ↓</a>
         </div>
-      </fieldset>
-      <div class="brief-row">
-        <label class="field"><span>{t.brief.date}</span><input type="date" name="date" /></label>
-        <label class="field"><span>{t.brief.place}</span><input type="text" name="place" placeholder={t.brief.placePh} /></label>
       </div>
-      <label class="field"><span>{t.brief.name}</span><input type="text" name="name" autocomplete="name" /></label>
-      <button class="btn solid" type="submit">{t.brief.send} <span class="arrow">↗</span></button>
-    </form>
+      <form class="brief" data-brief data-wa={site.whatsappNumber} data-lang={lang}>
+        <p class="kicker">{t.brief.title}</p>
+        <fieldset>
+          <legend>{t.brief.type}</legend>
+          <div class="chips">
+            {t.brief.types.map((ty, i) => (
+              <label class="chip"><input type="radio" name="type" value={ty} checked={i === 0} /><span>{ty}</span></label>
+            ))}
+          </div>
+        </fieldset>
+        <div class="brief-row">
+          <label class="field"><span>{t.brief.date}</span><input type="date" name="date" /></label>
+          <label class="field"><span>{t.brief.place}</span><input type="text" name="place" placeholder={t.brief.placePh} /></label>
+        </div>
+        <label class="field"><span>{t.brief.name}</span><input type="text" name="name" autocomplete="name" /></label>
+        <button class="btn tan" type="submit">{t.brief.send} ↗</button>
+      </form>
+    </div>
   </div>
 </section>

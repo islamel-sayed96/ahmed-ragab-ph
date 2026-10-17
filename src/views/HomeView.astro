@@ -3,171 +3,216 @@ import Base from '../layouts/Base.astro';
 import Frame from '../components/Frame.astro';
 import FilmCard from '../components/FilmCard.astro';
 import Contact from '../components/Contact.astro';
+import Icon from '../components/Icon.astro';
 import { ui, path, type Lang } from '../i18n/ui';
-import { photos, categories, cover, heroPhoto } from '../data/photos';
-import { films } from '../data/films';
-import { img } from '../data/media';
-import { clients, cities, yearsActive } from '../data/site';
+import { photos, categories, cover, onStage, aboutA, aboutB, quotePhoto, packagesPhoto } from '../data/photos';
+import { films, showreel } from '../data/films';
+import { img, poster } from '../data/media';
+import { clients, artists, yearsActive, site } from '../data/site';
 
 const { lang } = Astro.props as { lang: Lang };
 const t = ui[lang];
-const featured = photos.filter((p) => p.featured);
-const featuredFilms = films.filter((f) => f.featured);
+const slides = photos.filter((p) => p.featured);
+const featuredFilms = films.filter((f) => f.featured).slice(0, 3);
 const [first, last] = lang === 'ar' ? ['أحمد', 'رجب'] : ['Ahmed', 'Ragab'];
-const count = (c: string) => photos.filter((p) => p.cat === c).length;
-const roman = ['I', 'II', 'III'];
-const edition = new Date().getFullYear();
-// Small photos tucked inside the statement sentence.
-const inline = [cover('weddings'), cover('concerts'), cover('brands')];
-const [s0, s1, s2, s3, s4, s5] = t.statement;
+const pad = (n: number) => String(n).padStart(2, '0');
 ---
 <Base lang={lang} page="" title={t.meta.home.title} description={t.meta.home.description}>
 
-  <!-- Cover: laid out like a magazine cover -->
-  <section class="cover wrap" aria-labelledby="cover-h">
-    <div class="cover-top kicker" data-fade>
-      <span>{t.issue} · {t.edition} {edition}</span>
-      <span class="route">{t.route[0]} <i aria-hidden="true">⟶</i> {t.route[1]}</span>
-      <span>{t.role}</span>
+  <!-- Hero: a strip of photos across the screen; the active one fills the background -->
+  <section class="stage" aria-labelledby="stage-h" data-stage>
+    <div class="stage-bg" aria-hidden="true">
+      {slides.map((p, i) => <img src={img(p.id, 1800, 'landscape')} alt="" class={i === 0 ? 'on' : ''} decoding="async" fetchpriority={i === 0 ? 'high' : undefined} />)}
     </div>
-    <h1 class="cover-name" id="cover-h" data-cover-name>
-      <span class="ln"><span>{first}</span></span>
-      <span class="ln"><em><span>{last}</span></em></span>
-    </h1>
-    <div class="cover-grid">
-      <div class="cover-side" data-fade>
-        <p class="kicker">{t.coverLines}</p>
-        <ol class="cover-lines">
-          {categories.slice(0, 4).map((c, i) => (
-            <li><a href={`${path(lang, 'photography')}?c=${c}`}><span>{t.cats[c]}</span><span class="kicker">p.{String((i + 1) * 8).padStart(2, '0')}</span></a></li>
-          ))}
-        </ol>
+    <div class="stage-shade" aria-hidden="true"></div>
+
+    <div class="stage-inner">
+      <div class="stage-head">
+        <h1 class="stage-name" id="stage-h" data-hero-name>
+          <span class="ln"><span>{first}</span></span>
+          <span class="ln"><span>{last}</span></span>
+        </h1>
+        <div class="stage-meta mono" data-hero-fade>
+          <span>{t.by} {first} {last}</span>
+          <span>{t.role}</span>
+          <span>{t.city}</span>
+          <span>{t.from}</span>
+        </div>
       </div>
-      <figure class="cover-photo" data-cover-photo>
-        <Frame photo={heroPhoto} w={1600} alt={t.role} eager />
-        <figcaption class="kicker"><span>{t.fig} 00</span><span dir="ltr">{cities.to.coords}</span></figcaption>
-      </figure>
-      <div class="cover-side end" data-fade>
-        <p class="cover-lede">{t.heroLede}</p>
-        <div class="ctas">
-          <a class="btn solid" href="#contact">{t.ctaBook} <span class="arrow">→</span></a>
-          <a class="btn line" href={path(lang, 'photography')}>{t.ctaWork}</a>
+
+      <div class="strip" data-strip>
+        <div class="strip-track" data-strip-track>
+          {slides.map((p, i) => (
+            <button type="button" class={`strip-item${i === 0 ? ' on' : ''}`} data-slide={i} aria-label={`${t.cats[p.cat]} ${i + 1}`} aria-pressed={i === 0 ? 'true' : 'false'}>
+              <img src={img(p.id, 700, 'portrait')} alt="" decoding="async" />
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div class="stage-foot">
+        <div class="counter mono" data-hero-fade>
+          <span data-count-now>01</span>
+          <span class="bar"><i data-count-bar style={`width:${100 / slides.length}%`}></i></span>
+          <span>{pad(slides.length)}</span>
+        </div>
+        <div class="stage-copy" data-hero-fade>
+          <p>{t.heroLede}</p>
+          <div class="ctas">
+            <a class="btn tan" href="#contact">{t.ctaBook}</a>
+            <a class="btn ghost" href={path(lang, 'photography')}>{t.ctaWork}</a>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Statement: one big sentence with photos set into the words -->
-  <section class="statement wrap" aria-label={t.role}>
-    <p data-words>
-      {s0} <span class="inl"><img src={img(inline[0].id, 300, 'landscape')} alt="" loading="lazy" /></span> <em>{s1}</em>
-      <span class="inl"><img src={img(inline[1].id, 300, 'landscape')} alt="" loading="lazy" /></span> <em>{s2}</em> {s3}
-      <span class="inl"><img src={img(inline[2].id, 300, 'landscape')} alt="" loading="lazy" /></span> <em>{s4}</em> {s5}
-    </p>
-  </section>
-
-  <!-- Contents: the categories as a table of contents with a hover preview -->
-  <section class="section wrap" aria-labelledby="index-h">
-    <div class="sec-head">
-      <h2 id="index-h">{t.indexTitle}</h2>
-      <p>{t.indexLede}</p>
-    </div>
-    <ol class="toc">
-      {categories.map((c, i) => (
-        <li data-reveal>
-          <a href={`${path(lang, 'photography')}?c=${c}`} data-peek={img(cover(c).id, 700, 'portrait')}>
-            <span class="toc-n kicker">{String(i + 1).padStart(2, '0')}</span>
-            <span class="toc-t">{t.cats[c]}</span>
-            <span class="toc-dots" aria-hidden="true"></span>
-            <span class="toc-c kicker">{count(c)} {t.photosCount}</span>
-            <span class="toc-arrow" aria-hidden="true">→</span>
+  <!-- Categories: tall cards, the way packages are shown on wedding sites -->
+  <section class="explore" aria-labelledby="explore-h">
+    <svg class="curve" viewBox="0 0 1440 80" preserveAspectRatio="none" aria-hidden="true"><path d="M0 80 C 360 0, 1080 0, 1440 80 Z" /></svg>
+    <div class="wrap">
+      <header class="title-block center">
+        <p class="kicker">{t.exploreKicker}</p>
+        <h2 id="explore-h" class="display">{t.exploreTitle}</h2>
+      </header>
+      <div class="cat-row">
+        {categories.map((c) => (
+          <a class="cat-card" href={`${path(lang, 'photography')}?c=${c}`} data-reveal>
+            <Frame photo={cover(c)} w={700} alt={t.cats[c]} />
+            <span class="cat-name">{t.cats[c]}</span>
+            <span class="btn tan tiny">{t.view}</span>
           </a>
-        </li>
-      ))}
-    </ol>
-  </section>
-
-  <!-- Selected frames: an asymmetric magazine spread -->
-  <section class="section wrap" aria-labelledby="sel-h">
-    <div class="sec-head">
-      <h2 id="sel-h">{t.selectedTitle}</h2>
-      <p>{t.selectedLede}</p>
-    </div>
-    <div class="spread" data-sheet>
-      {featured.map((p, i) => (
-        <figure class={`sp sp-${i + 1}`} data-reveal>
-          <Frame photo={p} w={1200} alt={t.cats[p.cat]} zoom />
-          <figcaption class="kicker"><span>{t.fig} {String(i + 1).padStart(2, '0')}</span><span>{t.cats[p.cat]}</span></figcaption>
-        </figure>
-      ))}
-    </div>
-    <div class="sec-foot"><a class="btn line" href={path(lang, 'photography')}>{t.seeAllPhotos} <span class="arrow">→</span></a></div>
-  </section>
-
-  <!-- Films: a horizontal reel that moves as you scroll -->
-  <section class="films-band" aria-labelledby="films-h" data-hscroll>
-    <div class="wrap"><div class="sec-head">
-      <h2 id="films-h">{t.filmsTitle}</h2>
-      <p>{t.filmsLede} <span class="kicker hint">{t.dragHint}</span></p>
-    </div></div>
-    <div class="hs-viewport">
-      <div class="hs-track" data-hs-track>
-        {featuredFilms.map((f, i) => <FilmCard lang={lang} film={f} n={i + 1} />)}
-        <a class="hs-more" href={path(lang, 'films')}><span>{t.seeAllFilms}</span><span class="arrow">→</span></a>
+        ))}
       </div>
     </div>
   </section>
 
-  <!-- Two seas: Alexandria to Dubai -->
-  <section class="section wrap seas" aria-labelledby="seas-h">
-    <h2 id="seas-h" class="seas-h">{t.seasTitle}</h2>
-    <div class="seas-grid">
-      {t.seas.map((s, i) => (
-        <article class={`sea sea-${i}`} data-reveal>
-          <Frame photo={cover(i === 0 ? 'places' : 'events')} w={900} alt={s.city} />
-          <p class="kicker" dir="ltr">{i === 0 ? cities.from.coords : cities.to.coords}</p>
-          <h3>{s.city}</h3>
-          <p class="sea-name">{s.sea}</p>
-          <p>{s.text}</p>
-        </article>
-      ))}
-      <div class="seas-line" aria-hidden="true"><span></span></div>
-    </div>
-    <dl class="stats">
-      <div data-reveal><dt class="kicker">{t.stats.years}</dt><dd data-count={yearsActive}>{yearsActive}+</dd></div>
-      <div data-reveal><dt class="kicker">{t.stats.shoots}</dt><dd data-count="600">600+</dd></div>
-      <div data-reveal><dt class="kicker">{t.stats.cities}</dt><dd>2</dd></div>
-    </dl>
+  <!-- Showreel -->
+  <section class="reel-band" aria-labelledby="reel-h">
+    <a class="reel" href="#" data-video={showreel.id} data-title={showreel.title} aria-label={t.reelPlay}>
+      <img src={poster(showreel.id, 2000)} alt="" loading="lazy" decoding="async" data-drive-video={showreel.id} />
+      <span class="reel-text">
+        <span class="kicker">{t.reelKicker}</span>
+        <span class="display" id="reel-h">{t.reelTitle}</span>
+        <span class="play" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5l11 7-11 7z"/></svg></span>
+      </span>
+    </a>
   </section>
 
-  <!-- Services -->
-  <section class="section wrap" aria-labelledby="srv-h">
-    <div class="sec-head"><h2 id="srv-h">{t.servicesTitle}</h2></div>
-    <div class="services">
-      {t.services.map((s, i) => (
-        <article class="service" data-reveal>
-          <span class="svc-n">{roman[i]}</span>
-          <h3>{s.title}</h3>
-          <p>{s.text}</p>
-          <ul>{s.items.map((it) => <li>{it}</li>)}</ul>
-        </article>
-      ))}
+  <!-- About: overlapping photos and a short hello -->
+  <section class="section wrap about-intro" aria-labelledby="hi-h">
+    <div class="collage collage-2" data-reveal>
+      <Frame photo={aboutB} w={900} alt="" class="c-back" />
+      <Frame photo={aboutA} w={700} alt="" class="c-front" />
+    </div>
+    <div>
+      <p class="kicker line">{t.aboutKicker}</p>
+      <h2 class="serif-h" id="hi-h">{t.aboutHi[0]}<br />{t.aboutHi[1]}</h2>
+      <hr />
+      {t.aboutText.map((p) => <p class="muted">{p}</p>)}
+      <dl class="stats">
+        <div><dd data-count={yearsActive}>{yearsActive}+</dd><dt class="mono">{t.stats.years}</dt></div>
+        <div><dd data-count="600">600+</dd><dt class="mono">{t.stats.shoots}</dt></div>
+        <div><dd>2</dd><dt class="mono">{t.stats.countries}</dt></div>
+      </dl>
+      <a class="link-arrow" href={path(lang, 'about')}>{t.aboutMore} <span class="arrow">→</span></a>
     </div>
   </section>
 
-  <!-- Quote + clients -->
-  <section class="section wrap quote-block" aria-label={t.clientsTitle}>
-    <blockquote data-reveal>
+  <!-- Skills with icons, next to a stacked collage -->
+  <section class="section wrap skills-sec" aria-labelledby="skills-h">
+    <div>
+      <p class="kicker line">{t.skillsKicker}</p>
+      <h2 class="serif-h" id="skills-h">{t.skillsTitle[0]}<br />{t.skillsTitle[1]}</h2>
+      <hr />
+      <div class="skills">
+        {t.skills.map((s) => (
+          <article class="skill" data-reveal>
+            <Icon name={s.icon} />
+            <h3>{s.title}</h3>
+            <p class="muted">{s.text}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+    <div class="collage collage-3" data-reveal>
+      <Frame photo={photos[3]} w={800} alt="" class="c1" />
+      <Frame photo={photos[10]} w={700} alt="" class="c2" />
+      <Frame photo={photos[17]} w={700} alt="" class="c3" />
+    </div>
+  </section>
+
+  <!-- Films -->
+  <section class="section wrap" aria-labelledby="films-h">
+    <header class="title-block split">
+      <div><p class="kicker">{t.filmsKicker}</p><h2 id="films-h" class="display">{t.filmsTitle}</h2></div>
+      <a class="link-arrow" href={path(lang, 'films')}>{t.seeAllFilms} <span class="arrow">→</span></a>
+    </header>
+    <div class="film-grid">
+      {featuredFilms.map((f, i) => <FilmCard lang={lang} film={f} n={i + 1} />)}
+    </div>
+  </section>
+
+  <!-- On stage -->
+  <section class="section wrap" aria-labelledby="stage2-h">
+    <header class="title-block center">
+      <p class="kicker">{t.stageKicker}</p>
+      <h2 id="stage2-h" class="display">{t.stageTitle}</h2>
+    </header>
+    <div class="stage-cards" data-sheet>
+      {onStage.map((s, i) => (
+        <figure class="stage-card" data-reveal>
+          <Frame photo={{ id: s.id, cat: 'concerts', shape: 'tall' }} w={800} alt={s.artist} caption={s.artist} zoom />
+          <figcaption><span class="mono">{pad(i + 1)}</span><span class="stage-artist">{s.artist}</span></figcaption>
+        </figure>
+      ))}
+    </div>
+    <p class="also"><span class="mono">{t.alsoOnStage}</span> {artists.join(' · ')}</p>
+  </section>
+
+  <!-- Testimonial over a full-width photo -->
+  <section class="quote-band" aria-labelledby="quote-h">
+    <img src={img(quotePhoto.id, 2000, 'landscape')} alt="" loading="lazy" decoding="async" />
+    <div class="quote-inner">
+      <h2 id="quote-h" class="display">“{t.quoteTitle}”</h2>
       <p>{t.quote}</p>
-      <footer class="kicker">{t.quoteBy}</footer>
-    </blockquote>
+      <p class="mono">{t.quoteBy}</p>
+    </div>
   </section>
-  <div class="clients" aria-label={t.clientsTitle}>
-    <p class="wrap kicker">{t.clientsTitle}</p>
-    <div class="marquee"><div class="marquee-track">
-      {[...clients, ...clients].map((c, i) => <span aria-hidden={i >= clients.length ? 'true' : undefined}>{c}<i>✦</i></span>)}
-    </div></div>
-  </div>
+
+  <!-- Packages -->
+  <section class="packages" id="packages" aria-labelledby="pk-h">
+    <div class="wrap packages-grid">
+      <div class="pk-photo" data-reveal><Frame photo={packagesPhoto} w={1100} alt="" /></div>
+      <div>
+        <p class="kicker">{t.packagesKicker}</p>
+        <h2 id="pk-h" class="display pk-title">{t.packagesTitle[0]}<br />{t.packagesTitle[1]}</h2>
+        {t.packagesText.map((p) => <p class="pk-text">{p}</p>)}
+        <h3 class="pk-sub">{t.includedTitle}</h3>
+        <p class="pk-text">{t.included}</p>
+        <div class="accordion">
+          {t.packages.map((pk, i) => (
+            <details open={i === 0}>
+              <summary><span>{pk.name}</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></summary>
+              <ul>{pk.items.map((it) => <li>{it}</li>)}</ul>
+            </details>
+          ))}
+        </div>
+        <div class="pk-foot">
+          <span class="mono">{t.priceNote}</span>
+          <a class="btn tan" href={`https://wa.me/${site.whatsappNumber}`} target="_blank" rel="noopener">{t.nav.contact}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Brands -->
+  <section class="trusted wrap" aria-label={t.trustedKicker}>
+    <p class="kicker line">{t.trustedKicker}</p>
+    <ul class="logos">
+      {clients.map((c) => <li>{c}</li>)}
+    </ul>
+  </section>
 
   <Contact lang={lang} />
 </Base>
